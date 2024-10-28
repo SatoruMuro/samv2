@@ -727,8 +727,11 @@ class SAM2VideoPredictor(SAM2Base):
         obj_ids = inference_state["obj_ids"]
         num_frames = inference_state["num_frames"]
         batch_size = self._get_obj_num(inference_state)
-        if len(output_dict["cond_frame_outputs"]) == 0:
-            raise RuntimeError("No points are provided; please add points first")
+        # cond_frame_outputs が空の場合でも、mask_inputs_per_obj にボックスがある場合はエラーを発生させない
+        if len(output_dict["cond_frame_outputs"]) == 0 and not any(
+                box is not None for box in inference_state["mask_inputs_per_obj"].values()):
+            raise RuntimeError("No points or boxes are provided; please add points or a box first")
+
         clear_non_cond_mem = self.clear_non_cond_mem_around_input and (
             self.clear_non_cond_mem_for_multi_obj or batch_size <= 1
         )
@@ -751,6 +754,12 @@ class SAM2VideoPredictor(SAM2Base):
                 start_frame_idx + max_frame_num_to_track, num_frames - 1
             )
             processing_order = range(start_frame_idx, end_frame_idx + 1)
+
+    # 修正箇所 2: ボックスが存在するフレームも条件付きフレームとして追加
+        for obj_idx, mask_inputs_per_frame in inference_state["mask_inputs_per_obj"].items():
+            for frame_idx, mask_input in mask_inputs_per_frame.items():
+                if mask_input is not None:
+                    consolidated_frame_inds["cond_frame_outputs"].add(frame_idx)
 
         for frame_idx in tqdm(processing_order, desc="propagate in video"):
             # We skip those frames already in consolidated outputs (these are frames
