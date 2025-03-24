@@ -1,5 +1,10 @@
 # @package _global_
 
+defaults:
+  - _self_
+
+_target_: sam2.sam2_video_predictor.SAM2VideoPredictor
+
 # Model
 model:
   _target_: sam2.modeling.sam2_base.SAM2Base
