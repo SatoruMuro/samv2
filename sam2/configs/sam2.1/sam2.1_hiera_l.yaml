@@ -108,7 +108,6 @@ model:
   use_obj_ptrs_in_encoder: true
   add_tpos_enc_to_obj_ptrs: true
   proj_tpos_enc_in_obj_ptrs: true
-  use_signed_tpos_enc_to_obj_ptrs: true
   only_obj_ptrs_in_the_past_for_eval: true
   # object occlusion prediction
   pred_obj_scores: true
